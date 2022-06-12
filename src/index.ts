@@ -48,9 +48,9 @@ export function toTasteRecognize(
 
 function getUnit(input: string, language: SupportedLanguages): string[] {
   const {units, pluralUnits, symbolUnits} = i18nMap[language];
-  const [toTaste, toTasteMatch, _extFlag] = toTasteRecognize(input, language);
+  const [toTaste, toTasteMatch] = toTasteRecognize(input, language);
 
-  const res = (response: any[]) => {
+  const res = (response: string[]) => {
     const symbol = symbolUnits[response[0]];
     response.splice(2, 0, symbol);
     return response;
@@ -125,8 +125,8 @@ export function parse(recipeString: string, language: SupportedLanguages) {
   /* extraInfo will be any info in parantheses. We'll place it at the end of the ingredient.
   For example: "sugar (or other sweetener)" --> extraInfo: "(or other sweetener)" */
   let extraInfo;
-  if (convert.getFirstMatch(restOfIngredient, /\(([^\)]+)\)/)) {
-    extraInfo = convert.getFirstMatch(restOfIngredient, /\(([^\)]+)\)/);
+  if (convert.getFirstMatch(restOfIngredient, /\(([^\\)]+)\)/)) {
+    extraInfo = convert.getFirstMatch(restOfIngredient, /\(([^\\)]+)\)/);
     restOfIngredient = restOfIngredient.replace(extraInfo, '').trim();
   }
   // grab unit and turn it into non-plural version, for ex: "Tablespoons" OR "Tsbp." --> "tablespoon"
@@ -136,7 +136,7 @@ export function parse(recipeString: string, language: SupportedLanguages) {
   ) as string[];
 
   // remove unit from the ingredient if one was found and trim leading and trailing whitespace
-  let ingredient = !!originalUnit
+  let ingredient = originalUnit
     ? restOfIngredient.replace(originalUnit, '').trim()
     : restOfIngredient.replace(unit, '').trim();
   ingredient = ingredient.split('.').join('').trim();
@@ -158,9 +158,9 @@ export function parse(recipeString: string, language: SupportedLanguages) {
 
   return {
     quantity: convertToNumber(quantity, language),
-    unit: !!unit ? unit : null,
-    unitPlural: !!unitPlural ? unitPlural : null,
-    symbol: !!symbol ? symbol : null,
+    unit: unit ? unit : null,
+    unitPlural: unitPlural ? unitPlural : null,
+    symbol: symbol ? symbol : null,
     ingredient: extraInfo
       ? `${ingredient} ${extraInfo}`
       : ingredient.replace(/( )*\.( )*/g, ''),
